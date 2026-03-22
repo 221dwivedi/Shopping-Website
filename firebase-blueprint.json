@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A product available for purchase",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Product name" },
+        "description": { "type": "string", "description": "Product description" },
+        "price": { "type": "number", "description": "Product price" },
+        "category": { "type": "string", "description": "Product category" },
+        "image": { "type": "string", "description": "Product image URL" },
+        "rating": { "type": "number", "description": "Average rating" },
+        "numReviews": { "type": "number", "description": "Number of reviews" },
+        "countInStock": { "type": "number", "description": "Inventory count" },
+        "brand": { "type": "string", "description": "Product brand" }
+      },
+      "required": ["name", "price", "category", "image", "countInStock"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user of the platform",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "User role" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation date" }
+      },
+      "required": ["email", "role"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "A customer order",
+      "type": "object",
+      "properties": {
+        "user": { "type": "string", "description": "User ID" },
+        "orderItems": { "type": "array", "items": { "type": "object" }, "description": "List of items ordered" },
+        "shippingAddress": { "type": "object", "description": "Shipping address" },
+        "paymentMethod": { "type": "string", "description": "Payment method" },
+        "totalPrice": { "type": "number", "description": "Total price" },
+        "isPaid": { "type": "boolean", "description": "Payment status" },
+        "paidAt": { "type": "string", "format": "date-time", "description": "Payment date" },
+        "isDelivered": { "type": "boolean", "description": "Delivery status" },
+        "deliveredAt": { "type": "string", "format": "date-time", "description": "Delivery date" }
+      },
+      "required": ["user", "orderItems", "totalPrice"]
+    }
+  },
+  "firestore": {
+    "/products": { "schema": "Product", "description": "Collection of products" },
+    "/users": { "schema": "User", "description": "Collection of users" },
+    "/orders": { "schema": "Order", "description": "Collection of orders" }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "AmazeCart",
+  "description": "A high-performance, full-stack e-commerce platform with real-time inventory, secure checkout, and a modern Amazon-inspired UI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: products
+    // Document ID: auto-generated
+    // Fields: name, description, price, category, image, rating, numReviews, countInStock, brand
+    //
+    // Collection: users
+    // Document ID: userId (auth.uid)
+    // Fields: email, displayName, role, createdAt
+    //
+    // Collection: orders
+    // Document ID: auto-generated
+    // Fields: user, orderItems, shippingAddress, paymentMethod, totalPrice, isPaid, paidAt, isDelivered, deliveredAt
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "janhavidwi7071@gmail.com");
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'category', 'image', 'countInStock']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 200 &&
+             data.price is number && data.price >= 0 &&
+             data.category is string &&
+             data.image is string &&
+             data.countInStock is number && data.countInStock >= 0;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.email is string &&
+             data.role in ['admin', 'user'];
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['user', 'orderItems', 'totalPrice']) &&
+             data.user == request.auth.uid &&
+             data.totalPrice is number && data.totalPrice >= 0;
+    }
+
+    // Rules
+    match /products/{productId} {
+      allow read: if true; // Publicly readable
+      allow create, update, delete: if isAdmin() && isValidProduct(request.resource.data);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource.data.user == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidOrder(request.resource.data);
+      allow update: if isAdmin(); // Only admin can update order status
+    }
+  }
+}
